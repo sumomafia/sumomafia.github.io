@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>sumo.</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://api.fontshare.com/v2/css?f[]=sentient@400&f[]=satoshi@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #e2e2e2;
+      margin: 10px clamp(10px, 15vw, 300px)  
+    }
+
+    @media (max-width: 800px) {
+       	body {
+          margin: 10px 10px;	
+      }
+    }
+
+    header {
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+      padding: 10px 20px;
+      border-bottom: 1px solid #2a2a2a;
+      height: 60px;     
+    }
+
+    .logo, .contact {
+      flex: 1;
+    }
+
+    .contact {
+      text-align: right;
+    }
+
+    .logo {
+      text-align: left;
+    }
+
+    .logo-link {
+      text-decoration: none;
+      margin: 0;
+      font-size: clamp(32px, 6vw, 48px);
+      font-family: 'Sentient', serif;
+      line-height: 60px;
+      color: #2a2a2a;
+    }
+
+    .contactme-link {
+      text-decoration: none;
+      margin: 0;
+      font-size: clamp(14px, 2.5vw, 16px);
+      font-family: 'Satoshi', sans-serif;
+      line-height: 60px;
+      background-color: #2a2a2a;
+      color: #e2e2e2;
+      border-radius: 30px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0px 15px;
+      height: 40px;
+    }
+
+    .contact-section {
+      padding-top: 60px;
+      padding-bottom: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+      font-family: 'Satoshi', sans-serif;
+      font-size: clamp(14px, 4vw, 20px);
+      color: #2a2a2a;
+    }
+
+    .contact-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .contact-line i {
+      background-color: #2a2a2a;
+      color: #e2e2e2;
+      padding: 10px 10px;
+      border-radius: 30px;
+    }
+
+    .contact-button {
+      text-decoration: none;
+      color: #2a2a2a;
+    }
+
+    footer {
+      text-align: center;
+      font-size: clamp(14px, 2.5vw, 16px);
+      font-family: 'Satoshi', sans-serif;
+      color: #2a2a2a;
+      padding: 20px 0px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <a href="index.html" class="logo-link">sumo.</a>
+    </div>
+    <div class="contact">
+      <a href="contactme.html" class="contactme-link">Contact Me</a>
+    </div>
+  </header>
+
+  <section class="contact-section">
+    <div class="contact-line">
+      <i class="fas fa-envelope"></i>
+      <span>sumo.q@hotmail.com</span>
+    </div>
+  
+    <div class="contact-line">
+      <i class="fab fa-x-twitter"></i>
+      <a href="https://x.com/@sumomafia" target="_blank" class="contact-button">
+        x.com/@sumomafia
+      </a>
+    </div>
+  </section>    
+
+  <footer>
+    <small>© 2025 sumomafia. All rights reserved.</small>
+  </footer>
+      
+</body>
+</html>
