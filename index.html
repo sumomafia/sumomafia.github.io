@@ -60,9 +60,29 @@
       height: 40px;
     }
 
+    main {
+      margin-top: 20px;
+    }
+
+    .portfolio {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+      gap: 15px;
+    }
+
+    .portfolio img {
+      width: 100%;
+      height:auto;
+      border-radius: 8px;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+
   </style>
 </head>
 <body>
+
   <header>
     <div class="logo">
       <h1>sumo.</h1>
@@ -71,5 +91,17 @@
       <p>Contact Me</p>
     </div>
   </header>
+
+  <main>
+    <section class="portfolio">
+      <img src="images/PH1.png" alt="Placeholder 1">
+      <img src="images/PH2.png" alt="Placeholder 2">
+      <img src="images/PH3.png" alt="Placeholder 3">
+      <img src="images/PH4.png" alt="Placeholder 4">
+      <img src="images/PH5.png" alt="Placeholder 5">
+      <img src="images/PH6.png" alt="Placeholder 6">
+    </section>
+  </main>
+      
 </body>
 </html>
