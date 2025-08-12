@@ -63,6 +63,7 @@
       transition: opacity 0.3s ease;
       z-index: 9999;
       -webkit-overflow-scrolling: none;
+      touch-action: none; /* Important for touch gestures */
     }
 
     .lightbox.active {
@@ -77,6 +78,11 @@
       position: relative;
       opacity: 0;
       animation: fadeIn 0.5s forwards;
+      touch-action: none; /* Prevent default gestures */
+      user-select: none;
+      -webkit-user-drag: none;
+      transform-origin: center center;
+      will-change: transform;
     }
 
     @keyframes fadeIn {
@@ -150,7 +156,6 @@
         border-radius: 0;
       }
     }
-
   </style>
 </head>
 <body>
@@ -194,15 +199,28 @@
   </footer>
 
   <div class="lightbox" id="lightbox">
-    <img src="" alt="Enlarged view">
+    <img src="" alt="Enlarged view" id="lightboxImg">
   </div>
 
   <script>
     const lightbox = document.getElementById('lightbox');
-    const lightboxImg = lightbox.querySelector('img');
+    const lightboxImg = document.getElementById('lightboxImg');
     const images = Array.from(document.querySelectorAll('.portfolio img'));
     let currentIndex = -1;
-  
+    
+    // Variables for zoom and pan
+    let scale = 1;
+    let lastScale = 1;
+    let startDistance = 0;
+    let posX = 0;
+    let posY = 0;
+    let lastPosX = 0;
+    let lastPosY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let pinchCenter = { x: 0, y: 0 };
+
     // Disable scroll by fixing body position and preserving scroll offset
     function disableScroll() {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
@@ -212,7 +230,7 @@
       document.body.style.right = '0';
       document.body.dataset.scrollY = scrollY;
     }
-  
+
     // Enable scroll by restoring previous scroll position and resetting styles
     function enableScroll() {
       const scrollY = document.body.dataset.scrollY;
@@ -222,7 +240,40 @@
       document.body.style.right = '';
       window.scrollTo(0, scrollY);
     }
-  
+
+    // Reset transform state
+    function resetTransform() {
+      scale = 1;
+      lastScale = 1;
+      posX = 0;
+      posY = 0;
+      lastPosX = 0;
+      lastPosY = 0;
+      updateTransform();
+    }
+
+    // Apply CSS transform with current scale and position
+    function updateTransform() {
+      lightboxImg.style.transform = `translate(${posX}px, ${posY}px) scale(${scale})`;
+    }
+
+    // Calculate distance between two touches
+    function getDistance(touches) {
+      const [touch1, touch2] = touches;
+      const dx = touch2.clientX - touch1.clientX;
+      const dy = touch2.clientY - touch1.clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    // Calculate center point between two touches
+    function getCenter(touches) {
+      const [touch1, touch2] = touches;
+      return {
+        x: (touch1.clientX + touch2.clientX) / 2,
+        y: (touch1.clientY + touch2.clientY) / 2,
+      };
+    }
+
     // Open lightbox on image click and disable scrolling
     images.forEach((img, index) => {
       img.addEventListener('click', () => {
@@ -230,52 +281,97 @@
         showImage(currentIndex);
         lightbox.classList.add('active');
         disableScroll();
+        resetTransform();
       });
     });
-  
+
     // Show image by index with fade animation only
     function showImage(index) {
       if (index < 0) index = images.length - 1;
       if (index >= images.length) index = 0;
       currentIndex = index;
 
-      // Remove any previous animation by resetting opacity and animation
       lightboxImg.style.animation = 'none';
       lightboxImg.style.opacity = '0';
 
-      // Small timeout to reset animation
       setTimeout(() => {
         lightboxImg.src = images[currentIndex].src;
         lightboxImg.style.animation = 'fadeIn 0.5s forwards';
+        resetTransform();
       }, 50);
     }
-  
+
     // Close lightbox helper function that also enables scrolling
     function closeLightbox() {
       lightbox.classList.remove('active');
       enableScroll();
+      resetTransform();
     }
-  
+
     // Close lightbox when clicking outside the image
     lightbox.addEventListener('click', (e) => {
-      if (e.target === lightbox || e.target === lightboxImg) {
+      if (e.target === lightbox) {
         closeLightbox();
       }
     });
-  
-    // Prevent touchmove on lightbox to disable pull-to-refresh and overscroll
-    lightbox.addEventListener('touchmove', function(e) {
-      if (e.touches.length === 1) {
-        // Only prevent scrolling if single touch (drag)
-        e.preventDefault();
+
+    // Touch handling for zoom and pan
+    lightboxImg.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        // Pinch start
+        startDistance = getDistance(e.touches);
+        pinchCenter = getCenter(e.touches);
+        lastScale = scale;
+      } else if (e.touches.length === 1 && scale > 1) {
+        // Pan start
+        isDragging = true;
+        startX = e.touches[0].clientX - lastPosX;
+        startY = e.touches[0].clientY - lastPosY;
+        // cursor changes removed
       }
     }, { passive: false });
-    
-  
+
+    lightboxImg.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        // Pinch move
+        const currentDistance = getDistance(e.touches);
+        let newScale = lastScale * (currentDistance / startDistance);
+        newScale = Math.min(Math.max(newScale, 1), 4); // Limit zoom between 1 and 4
+        scale = newScale;
+        updateTransform();
+      } else if (e.touches.length === 1 && isDragging && scale > 1) {
+        e.preventDefault();
+        // Pan move
+        posX = e.touches[0].clientX - startX;
+        posY = e.touches[0].clientY - startY;
+
+        // Optional: limit pan so image doesn't move out too far
+        const maxX = (lightboxImg.clientWidth * (scale - 1)) / 2;
+        const maxY = (lightboxImg.clientHeight * (scale - 1)) / 2;
+        posX = Math.min(maxX, Math.max(posX, -maxX));
+        posY = Math.min(maxY, Math.max(posY, -maxY));
+
+        updateTransform();
+      }
+    }, { passive: false });
+
+    lightboxImg.addEventListener('touchend', (e) => {
+      if (e.touches.length < 2) {
+        lastScale = scale;
+      }
+      if (e.touches.length === 0) {
+        isDragging = false;
+        lastPosX = posX;
+        lastPosY = posY;
+        // cursor changes removed
+      }
+    });
+
     // Keyboard navigation & close
     document.addEventListener('keydown', (e) => {
       if (!lightbox.classList.contains('active')) return;
-  
+
       if (e.key === 'Escape') {
         closeLightbox();
       } else if (e.key === 'ArrowRight') {
@@ -284,38 +380,36 @@
         showImage(currentIndex - 1);
       }
     });
-  
-    // Swipe detection for mobile devices
+
+    // Swipe detection for mobile devices (for navigating images)
     let touchStartX = 0;
-    let touchStartTouches = 0;  // Track number of touches on start
+    let touchStartTouches = 0;
     let touchEndX = 0;
-    
+
     lightbox.addEventListener('touchstart', (e) => {
-      touchStartTouches = e.touches.length; // number of fingers
-      if (touchStartTouches === 1) {
+      touchStartTouches = e.touches.length;
+      if (touchStartTouches === 1 && scale === 1) {
         touchStartX = e.touches[0].screenX;
       }
     });
-    
+
     lightbox.addEventListener('touchend', (e) => {
-      // Only handle swipe if started with 1 finger and ended with 1 finger
-      if (touchStartTouches === 1 && e.changedTouches.length === 1) {
+      if (touchStartTouches === 1 && e.changedTouches.length === 1 && scale === 1) {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
       }
     });
-    
+
     function handleSwipe() {
       const swipeDistance = touchEndX - touchStartX;
-      if (Math.abs(swipeDistance) > 50) { // Minimum swipe distance
+      if (Math.abs(swipeDistance) > 50) {
         if (swipeDistance < 0) {
-          showImage(currentIndex + 1); // swipe left → next
+          showImage(currentIndex + 1);
         } else {
-          showImage(currentIndex - 1); // swipe right → previous
+          showImage(currentIndex - 1);
         }
       }
     }
-    
   </script>
       
 </body>
