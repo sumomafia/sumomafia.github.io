@@ -57,12 +57,12 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      overflow: hidden; /* Prevent scrollbars */
+      overflow: hidden;
       visibility: hidden;
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 9999;
-      -webkit-overflow-scrolling: none; /* iOS disables scroll momentum */
+      -webkit-overflow-scrolling: none;
     }
 
     .lightbox.active {
@@ -74,6 +74,35 @@
       max-width: 90%;
       max-height: 90%;
       border-radius: 8px;
+      position: relative;
+      transition: transform 0.5s ease, opacity 0.5s ease;
+      opacity: 1;
+    }
+
+    .slide-in-right {
+      transform: translateX(100%);
+      opacity: 0;
+      animation: slideInRight 0.5s forwards;
+    }
+
+    .slide-in-left {
+      transform: translateX(-100%);
+      opacity: 0;
+      animation: slideInLeft 0.5s forwards;
+    }
+
+    @keyframes slideInRight {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideInLeft {
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
     }
 
     .contactme-link {
@@ -133,8 +162,8 @@
       }
     
       .lightbox img {
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         max-width: none;
         max-height: none;
         object-fit: contain;
@@ -194,39 +223,6 @@
     const lightboxImg = lightbox.querySelector('img');
     const images = Array.from(document.querySelectorAll('.portfolio img'));
     let currentIndex = -1;
-
-    function openFullscreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { /* Safari */
-        elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { /* IE11 */
-        elem.msRequestFullscreen();
-      }
-    }
-    
-    images.forEach((img, index) => {
-      img.addEventListener('click', () => {
-        currentIndex = index;
-        showImage(currentIndex);
-        lightbox.classList.add('active');
-        disableScroll();
-        openFullscreen();  // request fullscreen here
-      });
-    });
-
-    function closeLightbox() {
-      lightbox.classList.remove('active');
-      enableScroll();
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
-    }
   
     // Disable scroll by fixing body position and preserving scroll offset
     function disableScroll() {
@@ -258,12 +254,29 @@
       });
     });
   
-    // Show image by index with wrap-around
-    function showImage(index) {
+    // Show image by index with wrap-around and sliding animation
+    function showImage(index, direction = 'right') {
       if (index < 0) index = images.length - 1;
       if (index >= images.length) index = 0;
       currentIndex = index;
-      lightboxImg.src = images[currentIndex].src;
+
+      // Remove any previous animation classes
+      lightboxImg.classList.remove('slide-in-left', 'slide-in-right');
+      
+      // Temporarily hide image for transition
+      lightboxImg.style.opacity = '0';
+
+      // Small timeout to trigger animation
+      setTimeout(() => {
+        lightboxImg.src = images[currentIndex].src;
+
+        // Add the animation class based on direction
+        if (direction === 'right') {
+          lightboxImg.classList.add('slide-in-right');
+        } else {
+          lightboxImg.classList.add('slide-in-left');
+        }
+      }, 50);
     }
   
     // Close lightbox helper function that also enables scrolling
@@ -291,9 +304,9 @@
       if (e.key === 'Escape') {
         closeLightbox();
       } else if (e.key === 'ArrowRight') {
-        showImage(currentIndex + 1);
+        showImage(currentIndex + 1, 'right');
       } else if (e.key === 'ArrowLeft') {
-        showImage(currentIndex - 1);
+        showImage(currentIndex - 1, 'left');
       }
     });
   
@@ -314,9 +327,9 @@
       const swipeDistance = touchEndX - touchStartX;
       if (Math.abs(swipeDistance) > 50) { // Minimum swipe distance
         if (swipeDistance < 0) {
-          showImage(currentIndex + 1); // swipe left → next
+          showImage(currentIndex + 1, 'right'); // swipe left → next
         } else {
-          showImage(currentIndex - 1); // swipe right → previous
+          showImage(currentIndex - 1, 'left'); // swipe right → previous
         }
       }
     }
