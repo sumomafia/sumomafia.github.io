@@ -60,6 +60,7 @@
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 9999;
+      overflow: hidden;
     }
 
     .lightbox.active {
@@ -71,6 +72,12 @@
       max-width: 90%;
       max-height: 90%;
       border-radius: 8px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 1;
+      transition: none; /* We'll handle transitions via JS */
     }
 
     .contactme-link {
@@ -105,6 +112,7 @@
       object-fit: cover;
       display: block;
       transition: transform 0.3s ease;
+      cursor: pointer;
     }
 
     footer {
@@ -139,7 +147,6 @@
         box-shadow: none;
       }
     }
-
   </style>
 </head>
 <body>
@@ -183,15 +190,15 @@
   </footer>
 
   <div class="lightbox" id="lightbox">
-    <img src="" alt="Enlarged view">
+    <!-- We'll dynamically add images here for animation -->
   </div>
 
   <script>
     const lightbox = document.getElementById('lightbox');
-    const lightboxImg = lightbox.querySelector('img');
     const images = Array.from(document.querySelectorAll('.portfolio img'));
     let currentIndex = -1;
-  
+    let isAnimating = false;
+
     // Disable scroll by fixing body position and preserving scroll offset
     function disableScroll() {
       const scrollY = window.scrollY || document.documentElement.scrollTop;
@@ -201,7 +208,7 @@
       document.body.style.right = '0';
       document.body.dataset.scrollY = scrollY;
     }
-  
+
     // Enable scroll by restoring previous scroll position and resetting styles
     function enableScroll() {
       const scrollY = document.body.dataset.scrollY;
@@ -211,75 +218,149 @@
       document.body.style.right = '';
       window.scrollTo(0, scrollY);
     }
-  
-    // Open lightbox on image click and disable scrolling
+
+    // Create an img element styled for lightbox
+    function createLightboxImg(src) {
+      const img = document.createElement('img');
+      img.src = src;
+      img.style.position = 'absolute';
+      img.style.left = '50%';
+      img.style.top = '50%';
+      img.style.transform = 'translate(-50%, -50%)';
+      img.style.maxWidth = '90%';
+      img.style.maxHeight = '90%';
+      img.style.borderRadius = '8px';
+      img.style.opacity = '1';
+      img.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+      return img;
+    }
+
+    // Show lightbox with first image
     images.forEach((img, index) => {
+      img.style.cursor = 'pointer';
       img.addEventListener('click', () => {
+        if (isAnimating) return;
         currentIndex = index;
-        showImage(currentIndex);
+        lightbox.innerHTML = '';
+        const firstImg = createLightboxImg(images[currentIndex].src);
+        lightbox.appendChild(firstImg);
         lightbox.classList.add('active');
         disableScroll();
       });
     });
-  
-    // Show image by index with wrap-around
-    function showImage(index) {
-      if (index < 0) index = images.length - 1;
-      if (index >= images.length) index = 0;
-      currentIndex = index;
-      lightboxImg.src = images[currentIndex].src;
+
+    function animateTransition(nextIndex, direction) {
+      if (isAnimating) return;
+      isAnimating = true;
+
+      if (nextIndex < 0) nextIndex = images.length -1;
+      if (nextIndex >= images.length) nextIndex = 0;
+
+      const currentImg = lightbox.querySelector('img');
+      const nextImg = createLightboxImg(images[nextIndex].src);
+
+      // Start positions for next image (offscreen)
+      if (direction === 'right') {
+        // Moving forward: current moves left/fade out, next from right/fade in
+        nextImg.style.transform = 'translate(calc(50% + 100vw), -50%)';
+        nextImg.style.opacity = '0';
+      } else {
+        // Moving backward: current moves right/fade out, next from left/fade in
+        nextImg.style.transform = 'translate(calc(50% - 100vw), -50%)';
+        nextImg.style.opacity = '0';
+      }
+
+      lightbox.appendChild(nextImg);
+
+      // Trigger reflow so transition applies
+      void nextImg.offsetWidth;
+
+      // Animate current image out
+      if (direction === 'right') {
+        currentImg.style.transform = 'translate(calc(50% - 100vw), -50%)';
+      } else {
+        currentImg.style.transform = 'translate(calc(50% + 100vw), -50%)';
+      }
+      currentImg.style.opacity = '0';
+
+      // Animate next image in
+      nextImg.style.transform = 'translate(-50%, -50%)';
+      nextImg.style.opacity = '1';
+
+      // After animation ends, remove old img, update currentIndex
+      function onTransitionEnd() {
+        currentImg.remove();
+        currentIndex = nextIndex;
+        isAnimating = false;
+        nextImg.removeEventListener('transitionend', onTransitionEnd);
+      }
+
+      nextImg.addEventListener('transitionend', onTransitionEnd);
     }
-  
+
+    function showNextImage() {
+      animateTransition(currentIndex + 1, 'right');
+    }
+
+    function showPrevImage() {
+      animateTransition(currentIndex - 1, 'left');
+    }
+
     // Close lightbox helper function that also enables scrolling
     function closeLightbox() {
+      if (isAnimating) return;
       lightbox.classList.remove('active');
+      lightbox.innerHTML = '';
       enableScroll();
     }
-  
+
     // Close lightbox when clicking outside the image
     lightbox.addEventListener('click', (e) => {
-      if (e.target === lightbox || e.target === lightboxImg) {
+      if (e.target === lightbox) {
         closeLightbox();
       }
     });
-  
+
     // Keyboard navigation & close
     document.addEventListener('keydown', (e) => {
       if (!lightbox.classList.contains('active')) return;
-  
+
+      if (isAnimating) return;
+
       if (e.key === 'Escape') {
         closeLightbox();
       } else if (e.key === 'ArrowRight') {
-        showImage(currentIndex + 1);
+        showNextImage();
       } else if (e.key === 'ArrowLeft') {
-        showImage(currentIndex - 1);
+        showPrevImage();
       }
     });
-  
+
     // Swipe detection for mobile devices
     let touchStartX = 0;
     let touchEndX = 0;
-  
+
     lightbox.addEventListener('touchstart', (e) => {
       touchStartX = e.changedTouches[0].screenX;
     });
-  
+
     lightbox.addEventListener('touchend', (e) => {
       touchEndX = e.changedTouches[0].screenX;
       handleSwipe();
     });
-  
+
     function handleSwipe() {
+      if (isAnimating) return;
       const swipeDistance = touchEndX - touchStartX;
       if (Math.abs(swipeDistance) > 50) { // Minimum swipe distance
         if (swipeDistance < 0) {
-          showImage(currentIndex + 1); // swipe left → next
+          showNextImage(); // swipe left → next
         } else {
-          showImage(currentIndex - 1); // swipe right → previous
+          showPrevImage(); // swipe right → previous
         }
       }
     }
   </script>
-      
+
 </body>
 </html>
