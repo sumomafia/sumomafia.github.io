@@ -265,8 +265,12 @@
   
     // Prevent touchmove on lightbox to disable pull-to-refresh and overscroll
     lightbox.addEventListener('touchmove', function(e) {
-      e.preventDefault();
+      if (e.touches.length === 1) {
+        // Only prevent scrolling if single touch (drag)
+        e.preventDefault();
+      }
     }, { passive: false });
+    
   
     // Keyboard navigation & close
     document.addEventListener('keydown', (e) => {
