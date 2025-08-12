@@ -7,15 +7,34 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link href="https://api.fontshare.com/v2/css?f[]=sentient@400&f[]=satoshi@500&display=swap" rel="stylesheet">
   <style>
+
+	html, body {
+	  height: 100%;
+	  margin: 0;
+	  display: flex;
+	  flex-direction: column;
+	}
+
     body {
       background-color: #e2e2e2;
-      margin: 10px clamp(10px, 15vw, 300px)  
+      margin-left: 10px clamp(10px, 15vw, 300px)  
+      margin-right: 10px clamp(10px, 15vw, 300px)  
     }
 
     @media (max-width: 800px) {
        	body {
-          margin: 10px 10px;	
+          margin-left: 10px;	
+          margin-right 10px;
       }
+    }
+
+    main.main-content {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      padding-top: 60px;
+      padding-bottom: 60px;
+      align-items: center;
     }
 
     header {
@@ -114,19 +133,21 @@
     </div>
   </header>
 
-  <section class="contact-section">
-    <div class="contact-line">
-      <i class="fas fa-envelope"></i>
-      <span>sumo.q@hotmail.com</span>
-    </div>
+  <main class="main-content">
+    <section class="contact-section">
+      <div class="contact-line">
+        <i class="fas fa-envelope"></i>
+        <span>sumo.q@hotmail.com</span>
+      </div>
   
-    <div class="contact-line">
-      <i class="fab fa-x-twitter"></i>
-      <a href="https://x.com/@sumomafia" target="_blank" class="contact-button">
-        x.com/@sumomafia
-      </a>
-    </div>
-  </section>    
+      <div class="contact-line">
+        <i class="fab fa-x-twitter"></i>
+        <a href="https://x.com/@sumomafia" target="_blank" class="contact-button">
+          x.com/@sumomafia
+        </a>
+      </div>
+    </section>    
+  </main>
 
   <footer>
     <small>© 2025 sumomafia. All rights reserved.</small>
