@@ -51,15 +51,18 @@
     .lightbox {
       position: fixed;
       top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.95);
       display: flex;
       justify-content: center;
       align-items: center;
+      overflow: hidden; /* Prevent scrollbars */
       visibility: hidden;
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: 9999;
+      -webkit-overflow-scrolling: none; /* iOS disables scroll momentum */
     }
 
     .lightbox.active {
@@ -242,6 +245,11 @@
         closeLightbox();
       }
     });
+  
+    // Prevent touchmove on lightbox to disable pull-to-refresh and overscroll
+    lightbox.addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
   
     // Keyboard navigation & close
     document.addEventListener('keydown', (e) => {
