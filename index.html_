@@ -71,8 +71,8 @@
     }
 
     .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
+      max-width: 90vw;
+      max-height: 90vh;
       border-radius: 8px;
       position: relative;
       transition: transform 0.5s ease, opacity 0.5s ease;
@@ -80,13 +80,13 @@
     }
 
     .slide-in-right {
-      transform: translateX(100%);
+      transform: translateX(100vw);
       opacity: 0;
       animation: slideInRight 0.5s forwards;
     }
 
     .slide-in-left {
-      transform: translateX(-100%);
+      transform: translateX(-100vw);
       opacity: 0;
       animation: slideInLeft 0.5s forwards;
     }
@@ -162,13 +162,12 @@
       }
     
       .lightbox img {
-        width: 100%;
-        height: 100%;
+        width: 100vw;
+        height: 100vh;
         max-width: none;
         max-height: none;
         object-fit: contain;
         border-radius: 0;
-        box-shadow: none;
       }
     }
 
