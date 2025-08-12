@@ -287,17 +287,24 @@
   
     // Swipe detection for mobile devices
     let touchStartX = 0;
+    let touchStartTouches = 0;  // Track number of touches on start
     let touchEndX = 0;
-  
+    
     lightbox.addEventListener('touchstart', (e) => {
-      touchStartX = e.changedTouches[0].screenX;
+      touchStartTouches = e.touches.length; // number of fingers
+      if (touchStartTouches === 1) {
+        touchStartX = e.touches[0].screenX;
+      }
     });
-  
+    
     lightbox.addEventListener('touchend', (e) => {
-      touchEndX = e.changedTouches[0].screenX;
-      handleSwipe();
+      // Only handle swipe if started with 1 finger and ended with 1 finger
+      if (touchStartTouches === 1 && e.changedTouches.length === 1) {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }
     });
-  
+    
     function handleSwipe() {
       const swipeDistance = touchEndX - touchStartX;
       if (Math.abs(swipeDistance) > 50) { // Minimum swipe distance
@@ -308,6 +315,7 @@
         }
       }
     }
+    
   </script>
       
 </body>
